@@ -1,14 +1,14 @@
-#! /usr/bin/env python
+﻿#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 import pilasengine
-import random
+import random, time
 
 TIEMPO = 6
 fin_de_juego = False
 
 pilas = pilasengine.iniciar()
 # Usar un fondo estándar
-pilas.fondos.Pasto()
+pilas.fondos.Cesped()
 # Añadir un marcador
 puntos = pilas.actores.Puntaje(x=230, y=200, color=pilas.colores.blanco)
 puntos.magnitud = 40
@@ -20,13 +20,18 @@ balas_simples = pilas.actores.Bala
 monos = []
 
 # Funciones
-def mono_destruido():
-    pass
+def mono_destruido(enemigo,disparo):
+    disparo.eliminar()
+    enemigo.eliminar()
+    puntos.aumentar()
+    puntos.escala=[0,1,3,1]
+
 
 
 def crear_mono():
     # Crear un enemigo nuevo
     enemigo = pilas.actores.Mono()
+    enemigo.radio_de_colision=20
     # Hacer que se aparición sea con un efecto bonito
     ##la escala varíe entre 0,25 y 0,75 (Ojo con el radio de colisión)
     enemigo.escala = .5
@@ -71,8 +76,18 @@ def crear_mono():
 
 torreta = pilas.actores.Torreta(enemigos=monos, cuando_elimina_enemigo=mono_destruido)
 
-pilas.tareas.agregar(1, crear_mono)
+pdf=pilas.tareas.agregar(1, crear_mono)
 #pilas.mundo.agregar_tarea(1, crear_mono) <-- sintaxis vieja
+def terminar_juego(torreta,enemigos):
+    global fin_del_juego
+    pdf.terminar()
+    torreta.eliminar()
+    texto=pilas.actores.Texto("fin del juego")
+    texto.escala=3
+    enemigos.eliminar()
+   
+pilas.colisiones.agregar(torreta,monos,terminar_juego) 
+
 
 
 # Arrancar el juego
